@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>PRE-MEAL SPRINT 40 | 食前2分の前頭葉スイッチ＆ドカ食い防止パズル</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #070b14;
+      --bg-panel: #0f172a;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--bg-deep);
+      color: #f8fafc;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      touch-action: none;
+      overscroll-behavior: none;
+    }
+
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 親指操作用の立体バーチャルボタン */
+    .pad-btn {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-bottom: 3px solid rgba(2, 6, 23, 0.95);
+      border-radius: 0.85rem;
+      color: #e2e8f0;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      transition: transform 0.04s ease, background 0.08s ease, border-color 0.08s ease;
+      touch-action: none;
+      cursor: pointer;
+    }
+
+    .pad-btn:active,
+    .pad-btn.active-press {
+      transform: translateY(2px);
+      border-bottom-width: 1px;
+      background: linear-gradient(180deg, rgba(14, 116, 144, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border-color: rgba(34, 211, 238, 0.7);
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(6, 182, 212, 0.4);
+    }
+
+    .pad-btn-hard {
+      background: linear-gradient(180deg, rgba(15, 118, 110, 0.65) 0%, rgba(17, 24, 39, 0.95) 100%);
+      border-color: rgba(45, 212, 191, 0.35);
+    }
+    .pad-btn-hard:active,
+    .pad-btn-hard.active-press {
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.85) 0%, rgba(6, 95, 70, 0.95) 100%);
+      border-color: rgba(110, 231, 183, 0.85);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.5);
+    }
+
+    .pad-btn-rot {
+      background: linear-gradient(180deg, rgba(30, 58, 138, 0.55) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border-color: rgba(96, 165, 250, 0.3);
+    }
+    .pad-btn-rot:active,
+    .pad-btn-rot.active-press {
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.85) 0%, rgba(30, 58, 138, 0.95) 100%);
+      border-color: rgba(147, 197, 253, 0.85);
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.5);
+    }
+
+    /* NEXT先読みハイライト枠 */
+    .next-focus-box {
+      background: radial-gradient(circle at 50% 20%, rgba(6, 182, 212, 0.14), rgba(15, 23, 42, 0.92) 75%);
+      border: 1.5px solid rgba(6, 182, 212, 0.45);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.12), inset 0 0 12px rgba(6, 182, 212, 0.08);
+    }
+
+    /* 4段消し時などの画面フラッシュ・シェイク */
+    @keyframes board-pop {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.018); }
+      100% { transform: scale(1); }
+    }
+    .board-pop-anim {
+      animation: board-pop 0.18s ease-out;
+    }
+
+    @keyframes pulse-ring {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45); }
+      50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+    }
+    .food-arrived-pulse {
+      animation: pulse-ring 2.2s infinite;
+    }
+
+    /* スクロールバー非表示（モーダル内用） */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="flex flex-col justify-between items-center w-full h-[100dvh] bg-slate-950 select-none overflow-hidden">
+
+  <!-- アプリ全体のコンテナ（スマホ〜タブレット・PCまで中央に美しく収める） -->
+  <div id="appRoot" class="relative flex flex-col justify-between w-full max-w-[500px] h-[100dvh] px-2 pt-1.5 pb-2 mx-auto overflow-hidden">
+
+    <!-- ================= 1. ヘッダーバー（状態表示 ＆ 料理到着1手クリアボタン） ================= -->
+    <header class="flex items-center justify-between gap-1.5 w-full shrink-0">
+      <!-- ロゴ＆前頭葉ステータス -->
+      <div class="flex items-center gap-1.5 min-w-0">
+        <div class="flex items-center justify-center w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 shrink-0">
+          <span class="text-sm">🧠</span>
+        </div>
+        <div class="leading-tight truncate">
+          <div class="flex items-center gap-1">
+            <span class="text-[11px] font-black tracking-wider text-cyan-300">PRE-MEAL 40L</span>
+            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">無音設計</span>
+          </div>
+          <p class="text-[10px] text-slate-400 truncate">NEXT先読みで食欲クールダウン</p>
+        </div>
+      </div>
+
+      <!-- アクションボタン群：料理が来た！（例外完了） ＆ リトライ ＆ 記録 -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <!-- 料理が来た！1手クリア（例外完了）ボタン -->
+        <button id="btnFoodArrived" type="button"
+          class="food-arrived-pulse flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold text-[11px] shadow-md active:scale-95 transition"
+          title="注文した料理が到着したらタップ！1手でも置いていれば（0手でも自動1手配置して）本日の食前ルーティン達成として記録します">
+          <span>🍜</span>
+          <span>料理が来た！完了</span>
+        </button>
+
+        <!-- 即リスタートボタン -->
+        <button id="btnQuickRestart" type="button"
+          class="flex items-center justify-center w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700 text-slate-300 hover:text-white active:scale-95 transition"
+          title="最初からやり直す (Rキー)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+
+        <!-- ダッシュボード・設定を開くボタン -->
+        <button id="btnOpenStats" type="button"
+          class="flex items-center justify-center w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700 text-cyan-300 hover:text-white active:scale-95 transition"
+          title="累計ダイエット＆認知トレ実績ダッシュボード">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ================= 2. リアルタイム指標バー（40L進捗・タイム・KPP・QUAD率） ================= -->
+    <section class="w-full shrink-0 my-1">
+      <div class="grid grid-cols-4 gap-1.5 bg-slate-900/90 border border-slate-800/90 rounded-xl p-1.5 shadow-inner">
+        <!-- 残りライン / 40 -->
+        <div class="flex flex-col px-2 py-0.5 bg-slate-950/60 rounded-lg border border-slate-800/60">
+          <div class="flex items-center justify-between">
+            <span class="text-[9px] font-bold text-slate-400 tracking-wider">LINES</span>
+            <span id="uiRemainTag" class="text-[9px] font-bold text-cyan-400">残40</span>
+          </div>
+          <div class="flex items-baseline gap-0.5">
+            <span id="uiLines" class="font-mono-num text-sm sm:text-base font-extrabold text-white">0</span>
+            <span class="font-mono-num text-[10px] text-slate-400">/40</span>
+          </div>
+          <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden mt-0.5">
+            <div id="uiLineBar" class="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 w-0 transition-all duration-150"></div>
+          </div>
+        </div>
+
+        <!-- スプリントタイム -->
+        <div class="flex flex-col justify-between px-2 py-0.5 bg-slate-950/60 rounded-lg border border-slate-800/60">
+          <span class="text-[9px] font-bold text-slate-400 tracking-wider">TIME</span>
+          <div id="uiTime" class="font-mono-num text-sm sm:text-base font-extrabold text-amber-300 tracking-tight">00:00.00</div>
+          <span class="text-[8px] text-slate-400 truncate">目標 2:00以内</span>
+        </div>
+
+        <!-- KPP (1ブロックあたりの操作数 = フィネス指標) -->
+        <div class="flex flex-col justify-between px-2 py-0.5 bg-slate-950/60 rounded-lg border border-slate-800/60">
+          <div class="flex items-center justify-between">
+            <span class="text-[9px] font-bold text-slate-400 tracking-wider">KPP(効率)</span>
+            <span id="uiKppBadge" class="text-[8px] px-1 rounded bg-cyan-500/20 text-cyan-300 font-bold">先読み</span>
+          </div>
+          <div id="uiKpp" class="font-mono-num text-sm sm:text-base font-extrabold text-cyan-300">0.00</div>
+          <span class="text-[8px] text-slate-400 truncate">理想 ≤ 3.0手/個</span>
+        </div>
+
+        <!-- 4段消し（QUAD / テトリス）達成率 -->
+        <div class="flex flex-col justify-between px-2 py-0.5 bg-slate-950/60 rounded-lg border border-slate-800/60">
+          <span class="text-[9px] font-bold text-slate-400 tracking-wider">QUAD率</span>
+          <div id="uiQuadRate" class="font-mono-num text-sm sm:text-base font-extrabold text-emerald-300">0%</div>
+          <span id="uiPiecesCount" class="text-[8px] text-slate-400 truncate">配置 0個</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 3. メインゲームステージ（左：HOLD＆フィネス / 中央：盤面 / 右：NEXT 4先読み） ================= -->
+    <main id="stageArea" class="relative flex-1 min-h-0 w-full flex items-center justify-center gap-1.5 sm:gap-2 overflow-hidden my-0.5">
+
+      <!-- 左カラム：HOLD ＆ リアルタイム脳トレ指標 -->
+      <div class="flex flex-col justify-between h-full py-0.5 w-[72px] sm:w-[84px] shrink-0">
+        <!-- HOLDボックス（タップでもHOLD発動） -->
+        <div id="holdBoxBtn" class="flex flex-col items-center bg-slate-900/90 border border-slate-700/80 rounded-xl p-1.5 shadow cursor-pointer active:scale-95 transition">
+          <div class="flex items-center justify-between w-full px-0.5 mb-1">
+            <span class="text-[10px] font-black tracking-wider text-slate-300">HOLD</span>
+            <span class="text-[8px] px-1 rounded bg-slate-800 text-slate-400">タップ可</span>
+          </div>
+          <canvas id="holdCanvas" width="64" height="52" class="w-full h-auto rounded bg-slate-950/80 border border-slate-800/80"></canvas>
+        </div>
+
+        <!-- 直近ブロックのムダ取り（フィネス）フィードバック -->
+        <div class="flex flex-col items-center justify-center bg-slate-900/80 border border-slate-800 rounded-xl p-1.5 text-center">
+          <span class="text-[8px] font-bold text-slate-400">直近の操作手数</span>
+          <div id="uiLastFinesse" class="font-mono-num text-xs font-black text-emerald-400 mt-0.5">--</div>
+          <div id="uiFinesseComment" class="text-[8px] font-bold text-slate-400 leading-tight mt-0.5">NEXTを見て<br>最小手数で配置</div>
+        </div>
+
+        <!-- 連続達成ストリーク＆累計カロリー抑制ミニカード -->
+        <div class="flex flex-col bg-gradient-to-b from-slate-900/90 to-slate-950 border border-slate-800 rounded-xl p-1.5 text-center">
+          <div class="flex items-center justify-center gap-0.5 text-[9px] font-bold text-amber-300">
+            <span>🔥</span>
+            <span id="uiMiniStreak">0日連続</span>
+          </div>
+          <div class="text-[8px] text-slate-400 mt-0.5">累計抑制</div>
+          <div id="uiMiniKcal" class="font-mono-num text-[11px] font-extrabold text-emerald-300">-0kcal</div>
+        </div>
+      </div>
+
+      <!-- 中央カラム：10x20 メイン盤面 Canvas -->
+      <div id="boardContainer" class="relative h-full flex items-center justify-center shrink-0">
+        <div id="boardFrame" class="relative rounded-xl p-1 bg-slate-900 border-2 border-slate-700/90 shadow-[0_0_25px_rgba(0,0,0,0.7)]">
+          <canvas id="boardCanvas" width="240" height="480" class="block rounded-lg bg-slate-950"></canvas>
+
+          <!-- 接地ロックダウン猶予インジケーターバー -->
+          <div class="absolute bottom-1 left-2 right-2 h-1 bg-slate-900/80 rounded-full overflow-hidden pointer-events-none">
+            <div id="lockDelayBar" class="h-full bg-amber-400 w-0 transition-none"></div>
+          </div>
+
+          <!-- 視覚エフェクトテキスト（QUAD! / OPTIMAL! など） -->
+          <div id="floatingFeedback" class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center px-2 opacity-0 transition-opacity duration-200">
+            <div id="floatingMainText" class="text-xl font-black tracking-wider text-cyan-300 drop-shadow-[0_2px_10px_rgba(6,182,212,0.9)]"></div>
+            <div id="floatingSubText" class="text-[11px] font-bold text-emerald-300 bg-slate-950/85 px-2 py-0.5 rounded-full border border-emerald-400/40 mt-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右カラム：先読み特化「NEXT 4個」大型視認パネル -->
+      <div class="flex flex-col justify-between h-full py-0.5 w-[76px] sm:w-[90px] shrink-0">
+        <div class="next-focus-box flex flex-col items-center h-full rounded-xl p-1.5 justify-between">
+          <div class="w-full text-center">
+            <div class="flex items-center justify-center gap-0.5 text-[10px] font-black tracking-wider text-cyan-300">
+              <span>👁️</span>
+              <span>NEXT 4</span>
+            </div>
+            <p class="text-[8px] font-bold text-cyan-200/80 leading-tight">視線をここに固定</p>
+          </div>
+
+          <!-- NEXT 4個描画用Canvas -->
+          <canvas id="nextCanvas" width="68" height="240" class="w-full flex-1 min-h-0 my-1 rounded-lg bg-slate-950/85 border border-cyan-500/30"></canvas>
+
+          <!-- ワーキングメモリ負荷メーター -->
+          <div class="w-full bg-slate-950/90 rounded-lg px-1.5 py-1 border border-slate-800 text-center">
+            <div class="text-[8px] text-slate-400 font-bold">WM視覚占拠率</div>
+            <div id="uiWmLoad" class="font-mono-num text-[10px] font-extrabold text-cyan-300">READY</div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ================= 4. 下部：スマホ親指特化の大型バーチャルパッド（DAS/ARR対応） ================= -->
+    <section class="w-full shrink-0 pt-1 pb-0.5">
+      <!-- 上段・下段の人間工学2×4レイアウト：左親指で移動＆落下、右親指で回転＆ホールド＆即落下 -->
+      <div class="grid grid-cols-4 gap-1.5 w-full h-[118px] sm:h-[128px]">
+        <!-- 1列目（左親指・左） -->
+        <div class="flex flex-col gap-1.5 h-full">
+          <button id="padLeft" type="button" data-action="left" class="pad-btn flex-[1.25]">
+            <span class="text-xl sm:text-2xl font-black leading-none">◀</span>
+            <span class="text-[9px] font-bold text-slate-400 mt-0.5">左移動</span>
+          </button>
+          <button id="padSoftDrop" type="button" data-action="down" class="pad-btn flex-1">
+            <span class="text-base sm:text-lg font-black leading-none text-cyan-300">▼</span>
+            <span class="text-[9px] font-bold text-slate-400 mt-0.5">ソフト落下</span>
+          </button>
+        </div>
+
+        <!-- 2列目（左親指・右） -->
+        <div class="flex flex-col gap-1.5 h-full">
+          <button id="padRight" type="button" data-action="right" class="pad-btn flex-[1.25]">
+            <span class="text-xl sm:text-2xl font-black leading-none">▶</span>
+            <span class="text-[9px] font-bold text-slate-400 mt-0.5">右移動</span>
+          </button>
+          <button id="padHardDropL" type="button" data-action="hard" class="pad-btn pad-btn-hard flex-1">
+            <span class="text-base sm:text-lg font-black leading-none text-emerald-300">⏬</span>
+            <span class="text-[9px] font-extrabold text-emerald-200 mt-0.5">即ドロップ</span>
+          </button>
+        </div>
+
+        <!-- 3列目（右親指・左） -->
+        <div class="flex flex-col gap-1.5 h-full">
+          <button id="padRotCCW" type="button" data-action="ccw" class="pad-btn pad-btn-rot flex-[1.25]">
+            <span class="text-xl sm:text-2xl font-black leading-none text-blue-300">↺</span>
+            <span class="text-[9px] font-bold text-blue-200 mt-0.5">左回転</span>
+          </button>
+          <button id="padHold" type="button" data-action="hold" class="pad-btn flex-1">
+            <span class="text-sm sm:text-base font-black leading-none text-amber-300">⇄ HOLD</span>
+            <span class="text-[9px] font-bold text-slate-400 mt-0.5">キープ</span>
+          </button>
+        </div>
+
+        <!-- 4列目（右親指・右） -->
+        <div class="flex flex-col gap-1.5 h-full">
+          <button id="padRotCW" type="button" data-action="cw" class="pad-btn pad-btn-rot flex-[1.25]">
+            <span class="text-xl sm:text-2xl font-black leading-none text-blue-300">↻</span>
+            <span class="text-[9px] font-bold text-blue-200 mt-0.5">右回転</span>
+          </button>
+          <button id="padHardDropR" type="button" data-action="hard" class="pad-btn pad-btn-hard flex-1">
+            <span class="text-base sm:text-lg font-black leading-none text-emerald-300">⏬</span>
+            <span class="text-[9px] font-extrabold text-emerald-200 mt-0.5">即ドロップ</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- PCキーボード操作ヒント（極小） -->
+      <div class="hidden sm:flex items-center justify-center gap-3 text-[10px] text-slate-500 mt-1">
+        <span>[←/→] 移動</span>
+        <span>[↓] ソフト</span>
+        <span>[Space/↑] 即ドロップ</span>
+        <span>[Z / X] 左/右回転</span>
+        <span>[C / Shift] HOLD</span>
+        <span>[R] リスタート</span>
+      </div>
+    </section>
+
+    <!-- ================= 5. 起動時＆ダッシュボード・オーバーレイ（ワンタップ即スタート） ================= -->
+    <div id="startModal" class="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-3">
+      <div class="w-full max-w-md bg-slate-900 border border-slate-700/90 rounded-2xl p-4 shadow-2xl flex flex-col gap-3 max-h-[94dvh] overflow-y-auto no-scrollbar">
+
+        <!-- タイトルヘッダー -->
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              ⚡ 食前2〜3分の前頭葉スイッチ
+            </span>
+            <h1 class="text-lg sm:text-xl font-black text-white mt-1 leading-snug">
+              40ライン・スプリント<br>
+              <span class="text-sm font-bold text-cyan-300">視覚的ワーキングメモリ占拠パズル</span>
+            </h1>
+          </div>
+          <div class="text-right shrink-0">
+            <span class="text-[10px] text-slate-400 block">店内安心</span>
+            <span class="text-xs font-extrabold text-emerald-400">🔇 完全無音</span>
+          </div>
+        </div>
+
+        <!-- 目で見る管理ダッシュボード（LocalStorage連動） -->
+        <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-extrabold text-slate-300 flex items-center gap-1">
+              <span>📊</span> あなたの食前ルーティン累計実績
+            </span>
+            <span id="dashTotalSessions" class="text-[10px] font-bold text-cyan-400">累計 0回達成</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <!-- 連続達成日数 -->
+            <div class="bg-slate-900/90 border border-slate-800/80 rounded-lg p-2">
+              <div class="text-[10px] text-slate-400 font-bold">連続達成ストリーク</div>
+              <div class="flex items-baseline gap-1 mt-0.5">
+                <span class="text-base">🔥</span>
+                <span id="dashStreak" class="font-mono-num text-xl font-black text-amber-300">0</span>
+                <span class="text-xs font-bold text-slate-300">日連続</span>
+              </div>
+              <div id="dashTodayStatus" class="text-[9px] text-slate-400 mt-0.5">本日：未プレイ</div>
+            </div>
+
+            <!-- 累計抑制カロリー＆脂肪換算 -->
+            <div class="bg-slate-900/90 border border-slate-800/80 rounded-lg p-2">
+              <div class="text-[10px] text-slate-400 font-bold">累計ドカ食い抑制効果</div>
+              <div class="flex items-baseline gap-1 mt-0.5">
+                <span id="dashTotalKcal" class="font-mono-num text-xl font-black text-emerald-400">-0</span>
+                <span class="text-xs font-bold text-emerald-300">kcal</span>
+              </div>
+              <div id="dashTotalFat" class="text-[9px] text-emerald-300/80 font-bold mt-0.5">脂肪換算 約 -0g 相当</div>
+            </div>
+
+            <!-- 40Lベストタイム -->
+            <div class="bg-slate-900/90 border border-slate-800/80 rounded-lg p-2">
+              <div class="text-[10px] text-slate-400 font-bold">40L ベストタイム</div>
+              <div id="dashBestTime" class="font-mono-num text-base font-black text-cyan-300 mt-0.5">--:--.--</div>
+            </div>
+
+            <!-- ベストKPP（最小手数フィネス） -->
+            <div class="bg-slate-900/90 border border-slate-800/80 rounded-lg p-2">
+              <div class="text-[10px] text-slate-400 font-bold">ベスト効率 (最小KPP)</div>
+              <div id="dashBestKpp" class="font-mono-num text-base font-black text-cyan-300 mt-0.5">--</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- コアコンセプトの3秒ガイド -->
+        <div class="bg-cyan-950/30 border border-cyan-500/30 rounded-xl p-2.5 text-xs text-slate-200 space-y-1">
+          <div class="font-extrabold text-cyan-300 text-[11px]">🎯 食前トレーニング 2つのルール</div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            1. <strong class="text-white">盤面ではなく右側の「NEXT 4」を見る</strong>：数手先を脳内で組み立て、最小手数（低KPP）で積むことで前頭葉が活性化し、空腹の視覚イメージが消去されます。
+          </p>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            2. <strong class="text-amber-300">料理が来たら上部の「🍜料理が来た！完了」をタップ</strong>：途中でも1手置いていれば（0手でも自動1手配置で）本日の達成実績として記録されます。
+          </p>
+        </div>
+
+        <!-- 長押し感度（DAS/ARR）ワンタップ切替 -->
+        <div class="flex items-center justify-between bg-slate-950/70 border border-slate-800 rounded-xl px-3 py-2">
+          <span class="text-[11px] font-bold text-slate-300">左右長押し移動スピード (DAS)</span>
+          <div class="flex items-center gap-1">
+            <button type="button" data-das="standard" class="das-opt-btn px-2 py-1 rounded text-[10px] font-bold bg-slate-800 text-slate-300">標準</button>
+            <button type="button" data-das="fast" class="das-opt-btn px-2 py-1 rounded text-[10px] font-bold bg-cyan-600 text-white">高速(推奨)</button>
+            <button type="button" data-das="pro" class="das-opt-btn px-2 py-1 rounded text-[10px] font-bold bg-slate-800 text-slate-300">超高速</button>
+          </div>
+        </div>
+
+        <!-- ワンタップ即スタートボタン -->
+        <button id="btnStartSprint" type="button"
+          class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-black text-base shadow-[0_0_25px_rgba(6,182,212,0.5)] active:scale-98 transition flex items-center justify-center gap-2">
+          <span>🚀</span>
+          <span>40L スプリント開始（即スタート）</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ================= 6. クリア＆前頭葉スイッチング・フィードバック画面 ================= -->
+    <div id="resultModal" class="hidden absolute inset-0 z-40 flex items-center justify-center bg-slate-950/92 backdrop-blur-md p-3">
+      <div class="w-full max-w-md bg-slate-900 border-2 border-emerald-500/60 rounded-2xl p-4 shadow-[0_0_35px_rgba(16,185,129,0.25)] flex flex-col gap-3 max-h-[94dvh] overflow-y-auto no-scrollbar">
+
+        <!-- 完了バッジ＆タイトル -->
+        <div class="text-center">
+          <div id="resBadge" class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+            ✨ 視覚的ワーキングメモリ占拠完了！
+          </div>
+          <h2 id="resTitle" class="text-xl font-black text-white mt-1">
+            40 LINES COMPLETE!
+          </h2>
+          <p id="resSubtitle" class="text-xs text-cyan-300 font-bold mt-0.5">
+            脳が「空腹・惰性モード」から「前頭葉優位モード」へ切り替わりました
+          </p>
+        </div>
+
+        <!-- ダイエット行動へのブリッジメッセージ（最重要フィードバック） -->
+        <div class="bg-gradient-to-br from-emerald-950/80 via-slate-900 to-cyan-950/80 border border-emerald-400/50 rounded-xl p-3 shadow-inner">
+          <div class="flex items-center justify-between border-b border-emerald-500/30 pb-2 mb-2">
+            <div>
+              <div class="text-[10px] font-bold text-emerald-300">今回の想定カロリー抑制効果</div>
+              <div class="text-lg font-black text-white font-mono-num">
+                -120 <span class="text-xs font-bold text-emerald-300">kcal</span>
+                <span class="text-[11px] font-normal text-slate-300 ml-1">（脂肪換算 約 -16.7g）</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] font-bold text-amber-300">連続達成</div>
+              <div id="resStreakNow" class="text-base font-black text-amber-300 font-mono-num">🔥 1日</div>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="text-xs font-extrabold text-emerald-200 flex items-center gap-1">
+              <span>🥢</span>
+              <span>ここからは「前頭葉モード」で食事スタート！</span>
+            </div>
+            <p id="resBridgeMessage" class="text-xs text-slate-200 leading-relaxed font-medium">
+              視覚的な食欲暴走はクールダウンされました。最初の一口目をゆっくり味わい、最初の3口だけ「20回噛む」ことで満腹中枢が最速でオンになります。
+            </p>
+          </div>
+        </div>
+
+        <!-- 今回のスプリント＆認知トレ指標 -->
+        <div class="grid grid-cols-3 gap-2 bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 text-center">
+          <div>
+            <div class="text-[10px] text-slate-400 font-bold">クリアタイム</div>
+            <div id="resTime" class="font-mono-num text-base font-black text-amber-300 mt-0.5">00:00.00</div>
+            <div id="resTimeNewRecord" class="text-[9px] font-extrabold text-emerald-400">COMPLETE</div>
+          </div>
+          <div class="border-x border-slate-800 px-1">
+            <div class="text-[10px] text-slate-400 font-bold">操作効率 (KPP)</div>
+            <div id="resKpp" class="font-mono-num text-base font-black text-cyan-300 mt-0.5">0.00</div>
+            <div id="resKppEval" class="text-[9px] font-bold text-slate-400">先読み評価</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-400 font-bold">QUAD率 / 消去</div>
+            <div id="resQuad" class="font-mono-num text-base font-black text-emerald-300 mt-0.5">0%</div>
+            <div id="resLinesCleared" class="text-[9px] font-bold text-slate-400">40 Lines</div>
+          </div>
+        </div>
+
+        <!-- 累計実績サマリー（更新後） -->
+        <div class="flex items-center justify-between bg-slate-950/90 border border-slate-800/90 rounded-xl px-3 py-2 text-xs">
+          <div>
+            <span class="text-slate-400 font-bold">累計抑制カロリー：</span>
+            <span id="resCumulativeKcal" class="font-mono-num font-black text-emerald-400">-120 kcal</span>
+          </div>
+          <div>
+            <span class="text-slate-400 font-bold">脂肪換算：</span>
+            <span id="resCumulativeFat" class="font-mono-num font-black text-cyan-300">-16.7 g</span>
+          </div>
+        </div>
+
+        <!-- アクションボタン -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button id="btnBackToTitle" type="button"
+            class="py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-extrabold text-xs border border-slate-700 active:scale-95 transition">
+            📊 ダッシュボードへ
+          </button>
+          <button id="btnPlayAgain" type="button"
+            class="py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-black text-xs shadow-lg active:scale-95 transition">
+            🔄 もう1プレイ (40L)
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /**
+     * PRE-MEAL SPRINT 40
+     * 食前のドカ食い防止（視覚的ワーキングメモリ占拠）＆前頭葉スイッチング用 40ライン・スプリント
+     */
+    (() => {
+      'use strict';
+
+      // ==========================================
+      // 1. 定数・テトリミノ定義（SRS準拠）
+      // ==========================================
+      const COLS = 10;
+      const ROWS = 20;
+      const HIDDEN_ROWS = 2; // 上部バッファ
+      const TOTAL_ROWS = ROWS + HIDDEN_ROWS;
+      const TARGET_LINES = 40;
+      const KCAL_PER_ROUTINE = 120; // 1回達成あたりの想定抑制カロリー(kcal)
+
+      // 7種のミノ形状定義 (4回転状態: 0=North, 1=East, 2=South, 3=West)
+      const TETROMINOES = {
+        I: {
+          color: '#06b6d4', // Cyan
+          border: '#67e8f9',
+          glow: 'rgba(6, 182, 212, 0.5)',
+          shapes: [
+            [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+            [[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],
+            [[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]],
+            [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]
+          ]
+        },
+        O: {
+          color: '#facc15', // Yellow
+          border: '#fef08a',
+          glow: 'rgba(250, 204, 21, 0.5)',
+          shapes: [
+            [[0,1,1,0],[0,1,1,0],[0,0,0,0]],
+            [[0,1,1,0],[0,1,1,0],[0,0,0,0]],
+            [[0,1,1,0],[0,1,1,0],[0,0,0,0]],
+            [[0,1,1,0],[0,1,1,0],[0,0,0,0]]
+          ]
+        },
+        T: {
+          color: '#a855f7', // Purple
+          border: '#d8b4fe',
+          glow: 'rgba(168, 85, 247, 0.5)',
+          shapes: [
+            [[0,1,0],[1,1,1],[0,0,0]],
+            [[0,1,0],[0,1,1],[0,1,0]],
+            [[0,0,0],[1,1,1],[0,1,0]],
+            [[0,1,0],[1,1,0],[0,1,0]]
+          ]
+        },
+        S: {
+          color: '#10b981', // Emerald Green
+          border: '#6ee7b7',
+          glow: 'rgba(16, 185, 129, 0.5)',
+          shapes: [
+            [[0,1,1],[1,1,0],[0,0,0]],
+            [[0,1,0],[0,1,1],[0,0,1]],
+            [[0,0,0],[0,1,1],[1,1,0]],
+            [[1,0,0],[1,1,0],[0,1,0]]
+          ]
+        },
+        Z: {
+          color: '#f43f5e', // Rose Red
+          border: '#fda4af',
+          glow: 'rgba(244, 63, 94, 0.5)',
+          shapes: [
+            [[1,1,0],[0,1,1],[0,0,0]],
+            [[0,0,1],[0,1,1],[0,1,0]],
+            [[0,0,0],[1,1,0],[0,1,1]],
+            [[0,1,0],[1,1,0],[1,0,0]]
+          ]
+        },
+        J: {
+          color: '#3b82f6', // Blue
+          border: '#93c5fd',
+          glow: 'rgba(59, 130, 246, 0.5)',
+          shapes: [
+            [[1,0,0],[1,1,1],[0,0,0]],
+            [[0,1,1],[0,1,0],[0,1,0]],
+            [[0,0,0],[1,1,1],[0,0,1]],
+            [[0,1,0],[0,1,0],[1,1,0]]
+          ]
+        },
+        L: {
+          color: '#f97316', // Orange
+          border: '#fdba74',
+          glow: 'rgba(249, 115, 22, 0.5)',
+          shapes: [
+            [[0,0,1],[1,1,1],[0,0,0]],
+            [[0,1,0],[0,1,0],[0,1,1]],
+            [[0,0,0],[1,1,1],[1,0,0]],
+            [[1,1,0],[0,1,0],[0,1,0]]
+          ]
+        }
+      };
+
+      const PIECE_TYPES = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
+
+      // SRS準拠のウォールキックオフセット (dx, dy ※下方向が+yなのでSRSのyを反転して適用)
+      const JLSTZ_KICKS = {
+        '0>1': [[0,0], [-1,0], [-1,-1], [0,2], [-1,2]],
+        '1>0': [[0,0], [1,0], [1,1], [0,-2], [1,-2]],
+        '1>2': [[0,0], [1,0], [1,1], [0,-2], [1,-2]],
+        '2>1': [[0,0], [-1,0], [-1,-1], [0,2], [-1,2]],
+        '2>3': [[0,0], [1,0], [1,-1], [0,2], [1,2]],
+        '3>2': [[0,0], [-1,0], [-1,1], [0,-2], [-1,-2]],
+        '3>0': [[0,0], [-1,0], [-1,1], [0,-2], [-1,-2]],
+        '0>3': [[0,0], [1,0], [1,-1], [0,2], [1,2]]
+      };
+
+      const I_KICKS = {
+        '0>1': [[0,0], [-2,0], [1,0], [-2,1], [1,-2]],
+        '1>0': [[0,0], [2,0], [-1,0], [2,-1], [-1,2]],
+        '1>2': [[0,0], [-1,0], [2,0], [-1,-2], [2,1]],
+        '2>1': [[0,0], [1,0], [-2,0], [1,2], [-2,-1]],
+        '2>3': [[0,0], [2,0], [-1,0], [2,-1], [-1,2]],
+        '3>2': [[0,0], [-2,0], [1,0], [-2,1], [1,-2]],
+        '3>0': [[0,0], [1,0], [-2,0], [1,2], [-2,-1]],
+        '0>3': [[0,0], [-1,0], [2,0], [-1,-2], [2,1]]
+      };
+
+      // ==========================================
+      // 2. LocalStorage ダッシュボード管理
+      // ==========================================
+      const STORAGE_KEY = 'premeal_sprint40_stats_v1';
+
+      function getTodayDateString() {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
+      function getYesterdayDateString() {
+        const d = new Date();
+        d.setDate(d.getDate() - 1);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+
+      function loadStats() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            return {
+              bestTimeMs: null,
+              bestKpp: null,
+              totalCompletions: 0,
+              streakDays: 0,
+              lastCompletedDate: null,
+              dasPreset: 'fast'
+            };
+          }
+          const parsed = JSON.parse(raw);
+          // ストリークが途切れていないかチェック（昨日でも今日でもなければ表示上0にリセット）
+          const today = getTodayDateString();
+          const yesterday = getYesterdayDateString();
+          if (parsed.lastCompletedDate && parsed.lastCompletedDate !== today && parsed.lastCompletedDate !== yesterday) {
+            parsed.streakDays = 0;
+          }
+          return {
+            bestTimeMs: parsed.bestTimeMs ?? null,
+            bestKpp: parsed.bestKpp ?? null,
+            totalCompletions: parsed.totalCompletions ?? 0,
+            streakDays: parsed.streakDays ?? 0,
+            lastCompletedDate: parsed.lastCompletedDate ?? null,
+            dasPreset: parsed.dasPreset ?? 'fast'
+          };
+        } catch (e) {
+          return {
+            bestTimeMs: null,
+            bestKpp: null,
+            totalCompletions: 0,
+            streakDays: 0,
+            lastCompletedDate: null,
+            dasPreset: 'fast'
+          };
+        }
+      }
+
+      function saveStats(statsObj) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(statsObj));
+        } catch (e) {
+          // プライベートブラウズ等で保存できない場合もエラーで止めない
+        }
+      }
+
+      let userStats = loadStats();
+
+      // ==========================================
+      // 3. DOM要素の取得
+      // ==========================================
+      const boardCanvas = document.getElementById('boardCanvas');
+      const boardCtx = boardCanvas.getContext('2d');
+      const holdCanvas = document.getElementById('holdCanvas');
+      const holdCtx = holdCanvas.getContext('2d');
+      const nextCanvas = document.getElementById('nextCanvas');
+      const nextCtx = nextCanvas.getContext('2d');
+
+      const stageArea = document.getElementById('stageArea');
+      const boardFrame = document.getElementById('boardFrame');
+      const lockDelayBar = document.getElementById('lockDelayBar');
+      const floatingFeedback = document.getElementById('floatingFeedback');
+      const floatingMainText = document.getElementById('floatingMainText');
+      const floatingSubText = document.getElementById('floatingSubText');
+
+      // リアルタイムメトリクスUI
+      const uiLines = document.getElementById('uiLines');
+      const uiRemainTag = document.getElementById('uiRemainTag');
+      const uiLineBar = document.getElementById('uiLineBar');
+      const uiTime = document.getElementById('uiTime');
+      const uiKpp = document.getElementById('uiKpp');
+      const uiKppBadge = document.getElementById('uiKppBadge');
+      const uiQuadRate = document.getElementById('uiQuadRate');
+      const uiPiecesCount = document.getElementById('uiPiecesCount');
+      const uiLastFinesse = document.getElementById('uiLastFinesse');
+      const uiFinesseComment = document.getElementById('uiFinesseComment');
+      const uiMiniStreak = document.getElementById('uiMiniStreak');
+      const uiMiniKcal = document.getElementById('uiMiniKcal');
+      const uiWmLoad = document.getElementById('uiWmLoad');
+
+      // モーダル類
+      const startModal = document.getElementById('startModal');
+      const resultModal = document.getElementById('resultModal');
+
+      // ダッシュボード表示要素
+      const dashTotalSessions = document.getElementById('dashTotalSessions');
+      const dashStreak = document.getElementById('dashStreak');
+      const dashTodayStatus = document.getElementById('dashTodayStatus');
+      const dashTotalKcal = document.getElementById('dashTotalKcal');
+      const dashTotalFat = document.getElementById('dashTotalFat');
+      const dashBestTime = document.getElementById('dashBestTime');
+      const dashBestKpp = document.getElementById('dashBestKpp');
+
+      // 結果画面要素
+      const resBadge = document.getElementById('resBadge');
+      const resTitle = document.getElementById('resTitle');
+      const resSubtitle = document.getElementById('resSubtitle');
+      const resStreakNow = document.getElementById('resStreakNow');
+      const resBridgeMessage = document.getElementById('resBridgeMessage');
+      const resTime = document.getElementById('resTime');
+      const resTimeNewRecord = document.getElementById('resTimeNewRecord');
+      const resKpp = document.getElementById('resKpp');
+      const resKppEval = document.getElementById('resKppEval');
+      const resQuad = document.getElementById('resQuad');
+      const resLinesCleared = document.getElementById('resLinesCleared');
+      const resCumulativeKcal = document.getElementById('resCumulativeKcal');
+      const resCumulativeFat = document.getElementById('resCumulativeFat');
+
+      // ==========================================
+      // 4. ゲーム状態変数
+      // ==========================================
+      let board = [];
+      let bagQueue = [];
+      let currentPiece = null;
+      let holdPieceType = null;
+      let canHold = true;
+
+      let gameState = 'IDLE'; // 'IDLE' | 'PLAYING' | 'FINISHED'
+      let startTimeMs = 0;
+      let elapsedMs = 0;
+      let lastFrameTime = 0;
+
+      // 落下・ロックダウン制御
+      const GRAVITY_INTERVAL_MS = 650; // 40Lスプリントに適した標準重力
+      const SOFT_DROP_INTERVAL_MS = 32;
+      const LOCK_DELAY_MS = 500;       // 接地後の猶予時間
+      const MAX_LOCK_MOVES = 15;       // 接地中の移動・回転によるリセット上限
+
+      let dropAccumulator = 0;
+      let isGrounded = false;
+      let lockTimer = 0;
+      let lockMoveCount = 0;
+
+      // スプリント＆認知トレ統計
+      let linesCleared = 0;
+      let quadLinesCleared = 0; // 4段消しで消去したライン数
+      let piecesPlaced = 0;
+      let totalKeyPresses = 0;
+      let currentPieceKeyPresses = 0;
+
+      // 視覚エフェクト（パーティクル＆ラインフラッシュ）
+      let particles = [];
+      let flashRows = [];
+      let flashAlpha = 0;
+      let boardBorderFlash = 0;
+
+      // DAS / ARR（長押し高速移動設定）
+      const DAS_PRESETS = {
+        standard: { das: 160, arr: 35 },
+        fast:     { das: 125, arr: 22 },
+        pro:      { das: 95,  arr: 12 }
+      };
+      let currentDasConfig = DAS_PRESETS[userStats.dasPreset] || DAS_PRESETS.fast;
+
+      let moveDir = 0; // -1: Left, 1: Right, 0: None
+      let dasTimer = 0;
+      let arrTimer = 0;
+      let isSoftDropping = false;
+
+      // ==========================================
+      // 5. ユーティリティ＆フォーマット関数
+      // ==========================================
+      function formatTimeMs(ms) {
+        if (ms === null || ms === undefined || isNaN(ms)) return '--:--.--';
+        const totalCentiseconds = Math.floor(ms / 10);
+        const cs = totalCentiseconds % 100;
+        const totalSeconds = Math.floor(totalCentiseconds / 100);
+        const sec = totalSeconds % 60;
+        const min = Math.floor(totalSeconds / 60);
+        return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+      }
+
+      // レスポンシブCanvasサイズ自動計算（100dvh内に確実に収める）
+      let cellSize = 24;
+      function resizeCanvases() {
+        const availH = stageArea.clientHeight - 10;
+        const availW = stageArea.clientWidth - 160; // 左右パネル分を確保
+        const maxCellByH = Math.floor(availH / ROWS);
+        const maxCellByW = Math.floor(availW / COLS);
+        cellSize = Math.max(15, Math.min(28, maxCellByH, maxCellByW));
+
+        boardCanvas.width = cellSize * COLS;
+        boardCanvas.height = cellSize * ROWS;
+
+        // NEXT 4個表示Canvasも高さに合わせて調整
+        const nextBoxH = Math.max(170, Math.min(260, cellSize * ROWS - 54));
+        nextCanvas.width = 68;
+        nextCanvas.height = nextBoxH;
+
+        renderAll();
+      }
+
+      window.addEventListener('resize', resizeCanvases);
+
+      // ==========================================
+      // 6. ダッシュボード更新処理
+      // ==========================================
+      function updateDashboardUI() {
+        userStats = loadStats();
+        const totalKcal = userStats.totalCompletions * KCAL_PER_ROUTINE;
+        const totalFatG = (totalKcal / 7.2).toFixed(1); // 脂肪1g ≒ 7.2kcal換算
+
+        dashTotalSessions.textContent = `累計 ${userStats.totalCompletions}回達成`;
+        dashStreak.textContent = `${userStats.streakDays}`;
+        dashTotalKcal.textContent = `-${totalKcal.toLocaleString()}`;
+        dashTotalFat.textContent = `脂肪換算 約 -${totalFatG}g 相当`;
+        dashBestTime.textContent = userStats.bestTimeMs ? formatTimeMs(userStats.bestTimeMs) : '--:--.--';
+        dashBestKpp.textContent = userStats.bestKpp ? `${userStats.bestKpp.toFixed(2)} 手/個` : '--';
+
+        const today = getTodayDateString();
+        if (userStats.lastCompletedDate === today) {
+          dashTodayStatus.textContent = '本日：✅ 食前ルーティン達成済';
+          dashTodayStatus.className = 'text-[9px] text-emerald-400 font-bold mt-0.5';
+        } else {
+          dashTodayStatus.textContent = '本日：プレイでストリーク更新！';
+          dashTodayStatus.className = 'text-[9px] text-amber-300 font-bold mt-0.5';
+        }
+
+        // ゲーム画面左下のミニバッジ更新
+        uiMiniStreak.textContent = `${userStats.streakDays}日連続`;
+        uiMiniKcal.textContent = `-${totalKcal}kcal`;
+
+        // DASプリセットボタンのハイライト更新
+        document.querySelectorAll('.das-opt-btn').forEach(btn => {
+          const preset = btn.getAttribute('data-das');
+          if (preset === userStats.dasPreset) {
+            btn.className = 'das-opt-btn px-2 py-1 rounded text-[10px] font-bold bg-cyan-500 text-slate-950 shadow';
+          } else {
+            btn.className = 'das-opt-btn px-2 py-1 rounded text-[10px] font-bold bg-slate-800 text-slate-300';
+          }
+        });
+      }
+
+      // ==========================================
+      // 7. 7-Bag生成・ピース操作・SRS回転補正
+      // ==========================================
+      function refillBag() {
+        const bag = [...PIECE_TYPES];
+        // Fisher-Yates shuffle
+        for (let i = bag.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [bag[i], bag[j]] = [bag[j], bag[i]];
+        }
+        bagQueue.push(...bag);
+      }
+
+      function getNextPieceType() {
+        while (bagQueue.length < 7) {
+          refillBag();
+        }
+        return bagQueue.shift();
+      }
+
+      function createPiece(type) {
+        const matrix = TETROMINOES[type].shapes[0];
+        const x = Math.floor((COLS - matrix[0].length) / 2);
+        const y = 1; // バッファ領域すぐ下から出現
+        return {
+          type,
+          rotation: 0,
+          x,
+          y
+        };
+      }
+
+      function isValidPosition(piece, nx = piece.x, ny = piece.y, nrot = piece.rotation) {
+        const shape = TETROMINOES[piece.type].shapes[nrot];
+        for (let r = 0; r < shape.length; r++) {
+          for (let c = 0; c < shape[r].length; c++) {
+            if (!shape[r][c]) continue;
+            const bx = nx + c;
+            const by = ny + r;
+            if (bx < 0 || bx >= COLS || by >= TOTAL_ROWS) {
+              return false;
+            }
+            if (by >= 0 && board[by][bx] !== null) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+
+      function spawnNextPiece() {
+        const nextType = getNextPieceType();
+        currentPiece = createPiece(nextType);
+        currentPieceKeyPresses = 0;
+        canHold = true;
+        resetLockState();
+
+        // もし出現位置が埋まっていたら（万が一の窒息時）、上部の行を少し空けて継続させる（食前ルーティンを止めない安全設計）
+        if (!isValidPosition(currentPiece)) {
+          for (let r = 0; r < 6; r++) {
+            board[r].fill(null);
+          }
+          showFloatingText('SAFETY CLEAR', '上部ブロックを自動整理しました', '#38bdf8');
+        }
+        checkGroundedState();
+      }
+
+      function resetLockState() {
+        isGrounded = false;
+        lockTimer = 0;
+        lockMoveCount = 0;
+        lockDelayBar.style.width = '0%';
+      }
+
+      function checkGroundedState() {
+        if (!currentPiece) return;
+        const groundedNow = !isValidPosition(currentPiece, currentPiece.x, currentPiece.y + 1, currentPiece.rotation);
+        if (groundedNow) {
+          isGrounded = true;
+        } else {
+          isGrounded = false;
+          lockTimer = 0;
+          lockDelayBar.style.width = '0%';
+        }
+      }
+
+      function registerLockResetOnAction() {
+        checkGroundedState();
+        if (isGrounded && lockMoveCount < MAX_LOCK_MOVES) {
+          lockTimer = 0;
+          lockMoveCount++;
+        }
+      }
+
+      // 移動処理
+      function moveHorizontal(dir, countKey = true) {
+        if (gameState !== 'PLAYING' || !currentPiece) return false;
+        if (countKey) {
+          totalKeyPresses++;
+          currentPieceKeyPresses++;
+        }
+        if (isValidPosition(currentPiece, currentPiece.x + dir, currentPiece.y, currentPiece.rotation)) {
+          currentPiece.x += dir;
+          registerLockResetOnAction();
+          updateMetricsUI();
+          return true;
+        }
+        updateMetricsUI();
+        return false;
+      }
+
+      // SRS準拠の回転処理（壁・床キック付き）
+      function rotatePiece(dir, countKey = true) {
+        // dir: 1 = CW (右回転), -1 = CCW (左回転)
+        if (gameState !== 'PLAYING' || !currentPiece) return false;
+        if (countKey) {
+          totalKeyPresses++;
+          currentPieceKeyPresses++;
+        }
+
+        const oldRot = currentPiece.rotation;
+        const newRot = (oldRot + dir + 4) % 4;
+        const key = `${oldRot}>${newRot}`;
+
+        let kicks = [[0, 0]];
+        if (currentPiece.type === 'I') {
+          kicks = I_KICKS[key] || [[0, 0]];
+        } else if (currentPiece.type !== 'O') {
+          kicks = JLSTZ_KICKS[key] || [[0, 0]];
+        }
+
+        for (const [dx, dy] of kicks) {
+          if (isValidPosition(currentPiece, currentPiece.x + dx, currentPiece.y + dy, newRot)) {
+            currentPiece.x += dx;
+            currentPiece.y += dy;
+            currentPiece.rotation = newRot;
+            registerLockResetOnAction();
+            updateMetricsUI();
+            return true;
+          }
+        }
+        updateMetricsUI();
+        return false;
+      }
+
+      // ソフトドロップ（1段落下）
+      function stepDown() {
+        if (gameState !== 'PLAYING' || !currentPiece) return false;
+        if (isValidPosition(currentPiece, currentPiece.x, currentPiece.y + 1, currentPiece.rotation)) {
+          currentPiece.y += 1;
+          checkGroundedState();
+          return true;
+        } else {
+          isGrounded = true;
+          return false;
+        }
+      }
+
+      // ゴーストY座標の取得
+      function getGhostY() {
+        if (!currentPiece) return 0;
+        let gy = currentPiece.y;
+        while (isValidPosition(currentPiece, currentPiece.x, gy + 1, currentPiece.rotation)) {
+          gy++;
+        }
+        return gy;
+      }
+
+      // ハードドロップ（即着地＆固定）
+      function hardDrop(countKey = true) {
+        if (gameState !== 'PLAYING' || !currentPiece) return;
+        if (countKey) {
+          totalKeyPresses++;
+          currentPieceKeyPresses++;
+        }
+        const gy = getGhostY();
+        currentPiece.y = gy;
+        lockCurrentPiece();
+      }
+
+      // HOLD処理
+      function holdCurrentPiece() {
+        if (gameState !== 'PLAYING' || !currentPiece || !canHold) return;
+        totalKeyPresses++;
+        currentPieceKeyPresses++;
+
+        const currentType = currentPiece.type;
+        if (holdPieceType === null) {
+          holdPieceType = currentType;
+          spawnNextPiece();
+        } else {
+          const swapType = holdPieceType;
+          holdPieceType = currentType;
+          currentPiece = createPiece(swapType);
+          resetLockState();
+          checkGroundedState();
+        }
+        canHold = false;
+        updateMetricsUI();
+        renderAll();
+      }
+
+      // ==========================================
+      // 8. ピース固定・ライン消去・視覚エフェクト
+      // ==========================================
+      function lockCurrentPiece() {
+        if (!currentPiece) return;
+        const shape = TETROMINOES[currentPiece.type].shapes[currentPiece.rotation];
+        const colorInfo = TETROMINOES[currentPiece.type];
+
+        for (let r = 0; r < shape.length; r++) {
+          for (let c = 0; c < shape[r].length; c++) {
+            if (!shape[r][c]) continue;
+            const bx = currentPiece.x + c;
+            const by = currentPiece.y + r;
+            if (by >= 0 && by < TOTAL_ROWS && bx >= 0 && bx < COLS) {
+              board[by][bx] = {
+                color: colorInfo.color,
+                border: colorInfo.border
+              };
+            }
+          }
+        }
+
+        piecesPlaced++;
+        evaluatePieceFinesse(currentPieceKeyPresses);
+
+        // ライン消去判定
+        const clearedRowIndices = [];
+        for (let r = 0; r < TOTAL_ROWS; r++) {
+          if (board[r].every(cell => cell !== null)) {
+            clearedRowIndices.push(r);
+          }
+        }
+
+        if (clearedRowIndices.length > 0) {
+          handleLineClears(clearedRowIndices);
+        }
+
+        updateMetricsUI();
+
+        // 40ライン達成チェック
+        if (linesCleared >= TARGET_LINES) {
+          completeSprint('COMPLETE_40L');
+          return;
+        }
+
+        spawnNextPiece();
+        renderAll();
+      }
+
+      function evaluatePieceFinesse(keysUsed) {
+        uiLastFinesse.textContent = `${keysUsed}手`;
+        if (keysUsed <= 2) {
+          uiLastFinesse.className = 'font-mono-num text-xs font-black text-cyan-300 mt-0.5';
+          uiFinesseComment.innerHTML = '⚡神先読み！<br>最小手数';
+          uiWmLoad.textContent = 'MAX FOCUS';
+          uiWmLoad.className = 'font-mono-num text-[10px] font-extrabold text-cyan-300';
+        } else if (keysUsed <= 3) {
+          uiLastFinesse.className = 'font-mono-num text-xs font-black text-emerald-400 mt-0.5';
+          uiFinesseComment.innerHTML = '✨OPTIMAL!<br>ムダなし配置';
+          uiWmLoad.textContent = 'OPTIMAL';
+          uiWmLoad.className = 'font-mono-num text-[10px] font-extrabold text-emerald-300';
+        } else if (keysUsed <= 5) {
+          uiLastFinesse.className = 'font-mono-num text-xs font-black text-amber-300 mt-0.5';
+          uiFinesseComment.innerHTML = 'GOOD<br>NEXTを意識';
+          uiWmLoad.textContent = 'ACTIVE';
+          uiWmLoad.className = 'font-mono-num text-[10px] font-extrabold text-amber-300';
+        } else {
+          uiLastFinesse.className = 'font-mono-num text-xs font-black text-rose-400 mt-0.5';
+          uiFinesseComment.innerHTML = '手数多め<br>NEXTを見よう';
+          uiWmLoad.textContent = 'LOOK NEXT';
+          uiWmLoad.className = 'font-mono-num text-[10px] font-extrabold text-rose-300';
+        }
+      }
+
+      function handleLineClears(rows) {
+        const count = rows.length;
+        linesCleared += count;
+        if (count === 4) {
+          quadLinesCleared += 4;
+        }
+
+        // 消去エフェクト用パーティクル生成
+        rows.forEach(r => {
+          const screenRow = r - HIDDEN_ROWS;
+          if (screenRow >= 0) {
+            for (let c = 0; c < COLS; c++) {
+              const cell = board[r][c];
+              const pColor = cell ? cell.color : '#38bdf8';
+              for (let i = 0; i < (count === 4 ? 4 : 2); i++) {
+                particles.push({
+                  x: (c + 0.5) * cellSize,
+                  y: (screenRow + 0.5) * cellSize,
+                  vx: (Math.random() - 0.5) * (count === 4 ? 7 : 4),
+                  vy: (Math.random() - 0.7) * (count === 4 ? 6 : 3.5),
+                  size: Math.random() * 4 + 2.5,
+                  color: count === 4 && Math.random() < 0.4 ? '#67e8f9' : pColor,
+                  alpha: 1.0
+                });
+              }
+            }
+          }
+        });
+
+        // 実際の盤面から行を削除し、上から空行を追加
+        // 下の行からズレないようにソートして削除
+        rows.sort((a, b) => a - b).forEach(r => {
+          board.splice(r, 1);
+          board.unshift(new Array(COLS).fill(null));
+        });
+
+        // フラッシュ＆ポップ演出
+        flashRows = rows.map(r => r - HIDDEN_ROWS).filter(r => r >= 0);
+        flashAlpha = 0.85;
+
+        boardFrame.classList.remove('board-pop-anim');
+        void boardFrame.offsetWidth; // reflow
+        boardFrame.classList.add('board-pop-anim');
+
+        if (count === 4) {
+          boardBorderFlash = 1.0;
+          showFloatingText('⚡ QUAD!! (4段消し)', '前頭葉ドーパミン放出！食欲クールダウン加速', '#22d3ee');
+        } else if (count === 3) {
+          showFloatingText('✨ TRIPLE! (3段)', 'ナイス先読み構築！', '#34d399');
+        } else if (count === 2) {
+          showFloatingText('DOUBLE!', 'リズム良好', '#a7f3d0');
+        }
+      }
+
+      let floatingTimeout = null;
+      function showFloatingText(main, sub, colorHex = '#22d3ee') {
+        floatingMainText.textContent = main;
+        floatingMainText.style.color = colorHex;
+        floatingSubText.textContent = sub;
+        floatingFeedback.style.opacity = '1';
+
+        if (floatingTimeout) clearTimeout(floatingTimeout);
+        floatingTimeout = setTimeout(() => {
+          floatingFeedback.style.opacity = '0';
+        }, 950);
+      }
+
+      // ==========================================
+      // 9. メトリクス表示更新
+      // ==========================================
+      function updateMetricsUI() {
+        const clampedLines = Math.min(TARGET_LINES, linesCleared);
+        const remain = Math.max(0, TARGET_LINES - linesCleared);
+        uiLines.textContent = `${linesCleared}`;
+        uiRemainTag.textContent = `残${remain}`;
+        uiLineBar.style.width = `${(clampedLines / TARGET_LINES) * 100}%`;
+
+        // KPP計算
+        const kpp = piecesPlaced > 0 ? (totalKeyPresses / piecesPlaced) : 0;
+        uiKpp.textContent = kpp.toFixed(2);
+        if (piecesPlaced === 0) {
+          uiKppBadge.textContent = '先読み';
+          uiKppBadge.className = 'text-[8px] px-1 rounded bg-cyan-500/20 text-cyan-300 font-bold';
+        } else if (kpp <= 3.0) {
+          uiKppBadge.textContent = '最適';
+          uiKppBadge.className = 'text-[8px] px-1 rounded bg-emerald-500/25 text-emerald-300 font-bold';
+        } else if (kpp <= 4.0) {
+          uiKppBadge.textContent = '良好';
+          uiKppBadge.className = 'text-[8px] px-1 rounded bg-cyan-500/20 text-cyan-300 font-bold';
+        } else {
+          uiKppBadge.textContent = '連打注意';
+          uiKppBadge.className = 'text-[8px] px-1 rounded bg-amber-500/25 text-amber-300 font-bold';
+        }
+
+        // QUAD率計算
+        const quadRate = linesCleared > 0 ? Math.round((quadLinesCleared / linesCleared) * 100) : 0;
+        uiQuadRate.textContent = `${quadRate}%`;
+        uiPiecesCount.textContent = `配置 ${piecesPlaced}個`;
+      }
+
+      // ==========================================
+      // 10. 描画処理（メイン盤面 / HOLD / NEXT 4個）
+      // ==========================================
+      function drawBlockCell(ctx, x, y, size, color, borderColor, alpha = 1) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 1, y + 1, size - 2, size - 2);
+
+        // ハイライト立体感
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(x + 1.5, y + 1.5, size - 3, size - 3);
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+        ctx.fillRect(x + 2, y + 2, size - 4, Math.max(2, (size - 4) * 0.28));
+        ctx.restore();
+      }
+
+      function renderBoard() {
+        const w = boardCanvas.width;
+        const h = boardCanvas.height;
+        boardCtx.clearRect(0, 0, w, h);
+
+        // 背景グリッド
+        boardCtx.strokeStyle = 'rgba(30, 41, 59, 0.65)';
+        boardCtx.lineWidth = 1;
+        for (let c = 1; c < COLS; c++) {
+          boardCtx.beginPath();
+          boardCtx.moveTo(c * cellSize, 0);
+          boardCtx.lineTo(c * cellSize, h);
+          boardCtx.stroke();
+        }
+        for (let r = 1; r < ROWS; r++) {
+          boardCtx.beginPath();
+          boardCtx.moveTo(0, r * cellSize);
+          boardCtx.lineTo(w, r * cellSize);
+          boardCtx.stroke();
+        }
+
+        // 固定済みブロックの描画
+        for (let r = HIDDEN_ROWS; r < TOTAL_ROWS; r++) {
+          const screenR = r - HIDDEN_ROWS;
+          for (let c = 0; c < COLS; c++) {
+            const cell = board[r][c];
+            if (cell) {
+              drawBlockCell(
+                boardCtx,
+                c * cellSize,
+                screenR * cellSize,
+                cellSize,
+                cell.color,
+                cell.border
+              );
+            }
+          }
+        }
+
+        // ゴーストピースと現在ピースの描画
+        if (currentPiece && gameState === 'PLAYING') {
+          const shape = TETROMINOES[currentPiece.type].shapes[currentPiece.rotation];
+          const info = TETROMINOES[currentPiece.type];
+          const ghostY = getGhostY();
+
+          // ゴースト描画（視認性の高いアウトライン＋薄塗り）
+          for (let r = 0; r < shape.length; r++) {
+            for (let c = 0; c < shape[r].length; c++) {
+              if (!shape[r][c]) continue;
+              const gx = currentPiece.x + c;
+              const gy = ghostY + r - HIDDEN_ROWS;
+              if (gy >= 0) {
+                boardCtx.save();
+                boardCtx.fillStyle = info.color;
+                boardCtx.globalAlpha = 0.18;
+                boardCtx.fillRect(gx * cellSize + 2, gy * cellSize + 2, cellSize - 4, cellSize - 4);
+                boardCtx.globalAlpha = 0.65;
+                boardCtx.strokeStyle = info.border;
+                boardCtx.lineWidth = 1.5;
+                boardCtx.strokeRect(gx * cellSize + 2, gy * cellSize + 2, cellSize - 4, cellSize - 4);
+                boardCtx.restore();
+              }
+            }
+          }
+
+          // 現在操作中のピース描画（ロックダウン中は少し明滅させて猶予を視覚化）
+          const lockPulseAlpha = isGrounded ? (0.75 + 0.25 * Math.sin(performance.now() * 0.02)) : 1.0;
+          for (let r = 0; r < shape.length; r++) {
+            for (let c = 0; c < shape[r].length; c++) {
+              if (!shape[r][c]) continue;
+              const px = currentPiece.x + c;
+              const py = currentPiece.y + r - HIDDEN_ROWS;
+              if (py >= 0) {
+                drawBlockCell(
+                  boardCtx,
+                  px * cellSize,
+                  py * cellSize,
+                  cellSize,
+                  info.color,
+                  info.border,
+                  lockPulseAlpha
+                );
+              }
+            }
+          }
+        }
+
+        // ライン消去フラッシュエフェクト
+        if (flashAlpha > 0 && flashRows.length > 0) {
+          boardCtx.save();
+          boardCtx.fillStyle = `rgba(103, 232, 249, ${flashAlpha})`;
+          flashRows.forEach(sr => {
+            boardCtx.fillRect(0, sr * cellSize, w, cellSize);
+          });
+          boardCtx.restore();
+        }
+
+        // パーティクル描画
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          boardCtx.save();
+          boardCtx.globalAlpha = Math.max(0, p.alpha);
+          boardCtx.fillStyle = p.color;
+          boardCtx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+          boardCtx.restore();
+        }
+
+        // 4段消し時の盤面枠輝き
+        if (boardBorderFlash > 0) {
+          boardFrame.style.borderColor = `rgba(34, 211, 238, ${0.4 + boardBorderFlash * 0.6})`;
+          boardFrame.style.boxShadow = `0 0 ${25 * boardBorderFlash}px rgba(6, 182, 212, ${boardBorderFlash * 0.75})`;
+        } else {
+          boardFrame.style.borderColor = 'rgba(51, 65, 85, 0.9)';
+          boardFrame.style.boxShadow = '0 0 25px rgba(0, 0, 0, 0.7)';
+        }
+      }
+
+      function drawMiniPiece(ctx, type, centerX, centerY, boxCellSize, dimmed = false) {
+        if (!type) return;
+        const info = TETROMINOES[type];
+        const shape = info.shapes[0];
+
+        // バウンディングボックスを計算して完全中央揃えにする
+        let minR = 4, maxR = -1, minC = 4, maxC = -1;
+        for (let r = 0; r < shape.length; r++) {
+          for (let c = 0; c < shape[r].length; c++) {
+            if (shape[r][c]) {
+              if (r < minR) minR = r;
+              if (r > maxR) maxR = r;
+              if (c < minC) minC = c;
+              if (c > maxC) maxC = c;
+            }
+          }
+        }
+        const pieceW = (maxC - minC + 1) * boxCellSize;
+        const pieceH = (maxR - minR + 1) * boxCellSize;
+        const startX = centerX - pieceW / 2;
+        const startY = centerY - pieceH / 2;
+
+        for (let r = minR; r <= maxR; r++) {
+          for (let c = minC; c <= maxC; c++) {
+            if (shape[r][c]) {
+              drawBlockCell(
+                ctx,
+                startX + (c - minC) * boxCellSize,
+                startY + (r - minR) * boxCellSize,
+                boxCellSize,
+                dimmed ? '#475569' : info.color,
+                dimmed ? '#94a3b8' : info.border,
+                dimmed ? 0.55 : 1.0
+              );
+            }
+          }
+        }
+      }
+
+      function renderHoldAndNext() {
+        // HOLD描画
+        holdCtx.clearRect(0, 0, holdCanvas.width, holdCanvas.height);
+        if (holdPieceType) {
+          drawMiniPiece(holdCtx, holdPieceType, holdCanvas.width / 2, holdCanvas.height / 2, 13, !canHold);
+        }
+
+        // NEXT 4個描画（1番目を特に大きく、2〜4番目もはっきり視認性高く描画）
+        nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+        const slotHeight = nextCanvas.height / 4;
+
+        for (let i = 0; i < 4; i++) {
+          const type = bagQueue[i];
+          if (!type) continue;
+          const cy = slotHeight * i + slotHeight / 2;
+
+          // 1手先（NEXT 1）の背景ハイライト
+          if (i === 0) {
+            nextCtx.save();
+            nextCtx.fillStyle = 'rgba(6, 182, 212, 0.12)';
+            nextCtx.fillRect(3, 3, nextCanvas.width - 6, slotHeight - 6);
+            nextCtx.strokeStyle = 'rgba(34, 211, 238, 0.45)';
+            nextCtx.lineWidth = 1;
+            nextCtx.strokeRect(3, 3, nextCanvas.width - 6, slotHeight - 6);
+            nextCtx.restore();
+          } else {
+            // 区切り線
+            nextCtx.save();
+            nextCtx.strokeStyle = 'rgba(51, 65, 85, 0.5)';
+            nextCtx.beginPath();
+            nextCtx.moveTo(8, slotHeight * i);
+            nextCtx.lineTo(nextCanvas.width - 8, slotHeight * i);
+            nextCtx.stroke();
+            nextCtx.restore();
+          }
+
+          // 番号ラベル
+          nextCtx.save();
+          nextCtx.fillStyle = i === 0 ? '#67e8f9' : '#64748b';
+          nextCtx.font = 'bold 9px Inter, sans-serif';
+          nextCtx.fillText(`${i + 1}`, 6, slotHeight * i + 11);
+          nextCtx.restore();
+
+          const miniSize = i === 0 ? 13.5 : 11.5;
+          drawMiniPiece(nextCtx, type, nextCanvas.width / 2 + 2, cy + 2, miniSize, false);
+        }
+      }
+
+      function renderAll() {
+        renderBoard();
+        renderHoldAndNext();
+      }
+
+      // ==========================================
+      // 11. メインゲームループ（60fps・DAS/ARR・ロックディレイ）
+      // ==========================================
+      function gameLoop(timestamp) {
+        if (!lastFrameTime) lastFrameTime = timestamp;
+        const dt = Math.min(100, timestamp - lastFrameTime);
+        lastFrameTime = timestamp;
+
+        if (gameState === 'PLAYING') {
+          // 1. 経過タイム更新
+          elapsedMs = performance.now() - startTimeMs;
+          uiTime.textContent = formatTimeMs(elapsedMs);
+
+          // 2. 左右長押し高速移動（DAS / ARR）処理
+          if (moveDir !== 0) {
+            dasTimer += dt;
+            if (dasTimer >= currentDasConfig.das) {
+              arrTimer += dt;
+              while (arrTimer >= currentDasConfig.arr) {
+                arrTimer -= currentDasConfig.arr;
+                // 長押しリピート移動時はKPPのキーカウントを増やさない（1回の長押し操作＝1手として評価）
+                const moved = moveHorizontal(moveDir, false);
+                if (!moved) break;
+              }
+            }
+          }
+
+          // 3. 自然落下またはソフトドロップ
+          const currentGravity = isSoftDropping ? SOFT_DROP_INTERVAL_MS : GRAVITY_INTERVAL_MS;
+          dropAccumulator += dt;
+          while (dropAccumulator >= currentGravity) {
+            dropAccumulator -= currentGravity;
+            stepDown();
+          }
+
+          // 4. 接地ロックダウンディレイ処理
+          checkGroundedState();
+          if (isGrounded) {
+            lockTimer += dt;
+            const ratio = Math.min(1, lockTimer / LOCK_DELAY_MS);
+            lockDelayBar.style.width = `${ratio * 100}%`;
+            if (lockTimer >= LOCK_DELAY_MS) {
+              lockCurrentPiece();
+            }
+          } else {
+            lockDelayBar.style.width = '0%';
+          }
+        }
+
+        // 5. パーティクル・フラッシュ減衰アニメーション
+        if (flashAlpha > 0) {
+          flashAlpha = Math.max(0, flashAlpha - dt * 0.0045);
+        }
+        if (boardBorderFlash > 0) {
+          boardBorderFlash = Math.max(0, boardBorderFlash - dt * 0.0025);
+        }
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.18; // 重力
+          p.alpha -= dt * 0.0022;
+          if (p.alpha <= 0) {
+            particles.splice(i, 1);
+          }
+        }
+
+        renderAll();
+        requestAnimationFrame(gameLoop);
+      }
+
+      // ==========================================
+      // 12. ゲーム開始・完走・料理到着1手クリア（例外完了）処理
+      // ==========================================
+      function startSprint() {
+        // 盤面初期化
+        board = Array.from({ length: TOTAL_ROWS }, () => new Array(COLS).fill(null));
+        bagQueue = [];
+        refillBag();
+        refillBag();
+
+        holdPieceType = null;
+        canHold = true;
+        linesCleared = 0;
+        quadLinesCleared = 0;
+        piecesPlaced = 0;
+        totalKeyPresses = 0;
+        currentPieceKeyPresses = 0;
+
+        particles = [];
+        flashRows = [];
+        flashAlpha = 0;
+        boardBorderFlash = 0;
+
+        moveDir = 0;
+        dasTimer = 0;
+        arrTimer = 0;
+        isSoftDropping = false;
+
+        startModal.classList.add('hidden');
+        resultModal.classList.add('hidden');
+
+        spawnNextPiece();
+        updateMetricsUI();
+        uiLastFinesse.textContent = '--';
+        uiFinesseComment.innerHTML = 'NEXTを見て<br>最小手数で配置';
+        uiWmLoad.textContent = 'LOOK NEXT';
+
+        gameState = 'PLAYING';
+        startTimeMs = performance.now();
+        elapsedMs = 0;
+        dropAccumulator = 0;
+
+        resizeCanvases();
+        showFloatingText('👁️ LOOK AT NEXT 4!', '右側のNEXTを見て最小手数で積もう', '#38bdf8');
+      }
+
+      /**
+       * スプリント完了処理
+       * @param {'COMPLETE_40L' | 'FOOD_ARRIVED'} mode
+       */
+      function completeSprint(mode) {
+        if (gameState === 'FINISHED') return;
+
+        // もし「🍜料理が来た！完了」が押された時点でまだ0ブロック配置だった場合、
+        // 習慣の連鎖が途切れない安全網（ポカヨケ）として現在ピースを自動で1手ハードドロップして「1ブロック配置実績」を作ってから完了する
+        if (mode === 'FOOD_ARRIVED' && piecesPlaced === 0) {
+          if (!currentPiece) {
+            board = Array.from({ length: TOTAL_ROWS }, () => new Array(COLS).fill(null));
+            refillBag();
+            spawnNextPiece();
+          }
+          totalKeyPresses = Math.max(1, totalKeyPresses + 1);
+          piecesPlaced = 1;
+        }
+
+        gameState = 'FINISHED';
+        moveDir = 0;
+        isSoftDropping = false;
+
+        const finalTimeMs = elapsedMs > 0 ? elapsedMs : 1200;
+        const finalKpp = piecesPlaced > 0 ? (totalKeyPresses / piecesPlaced) : 1.0;
+        const finalQuadRate = linesCleared > 0 ? Math.round((quadLinesCleared / linesCleared) * 100) : 0;
+
+        // LocalStorage実績の更新
+        const today = getTodayDateString();
+        const yesterday = getYesterdayDateString();
+
+        userStats = loadStats();
+        userStats.totalCompletions += 1;
+
+        if (userStats.lastCompletedDate === today) {
+          // 今日すでに達成済みの場合はストリーク日数を維持（もし0なら1にする）
+          userStats.streakDays = Math.max(1, userStats.streakDays);
+        } else if (userStats.lastCompletedDate === yesterday) {
+          // 昨日達成していればストリーク+1
+          userStats.streakDays = (userStats.streakDays || 0) + 1;
+          userStats.lastCompletedDate = today;
+        } else {
+          // 新規または途切れからの再開で1日目
+          userStats.streakDays = 1;
+          userStats.lastCompletedDate = today;
+        }
+
+        let isNewTimeRecord = false;
+        if (mode === 'COMPLETE_40L') {
+          if (userStats.bestTimeMs === null || finalTimeMs < userStats.bestTimeMs) {
+            userStats.bestTimeMs = finalTimeMs;
+            isNewTimeRecord = true;
+          }
+          if (userStats.bestKpp === null || finalKpp < userStats.bestKpp) {
+            userStats.bestKpp = finalKpp;
+          }
+        } else {
+          // 例外クリア時も5ブロック以上置いていればKPP自己ベスト対象にする
+          if (piecesPlaced >= 5 && (userStats.bestKpp === null || finalKpp < userStats.bestKpp)) {
+            userStats.bestKpp = finalKpp;
+          }
+        }
+
+        saveStats(userStats);
+        updateDashboardUI();
+
+        // 結果モーダルの表示内容構築
+        if (mode === 'COMPLETE_40L') {
+          resBadge.textContent = '🎉 40L完走！視覚的ワーキングメモリ占拠完了！';
+          resBadge.className = 'inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/40';
+          resTitle.textContent = '40 LINES COMPLETE!';
+          resSubtitle.textContent = '高速な先読み処理により、空腹の視覚イメージがクールダウンされました';
+          resBridgeMessage.textContent =
+            'ここからは「前頭葉モード（理性的判断）」で、一口目をゆっくり味わいましょう！最初の3口を20回ずつ噛むと、早食いや追加注文の衝動が劇的に収まります。';
+        } else {
+          resBadge.textContent = '🍜 料理到着！本日の食前ルーティン達成（例外完了）';
+          resBadge.className = 'inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-400/40';
+          resTitle.textContent = 'PRE-MEAL SWITCH ON!';
+          resSubtitle.textContent = `${piecesPlaced}ブロックの先読み配置完了！習慣の連鎖をしっかりキープしました`;
+          resBridgeMessage.textContent =
+            '料理が到着しました！すでに前頭葉への切り替えスイッチは入っています。まずは汁物や野菜から、最初の一口目をゆっくり味わって召し上がれ！';
+        }
+
+        resStreakNow.textContent = `🔥 ${userStats.streakDays}日連続`;
+        resTime.textContent = formatTimeMs(finalTimeMs);
+        if (mode === 'COMPLETE_40L') {
+          resTimeNewRecord.textContent = isNewTimeRecord ? '🏆 NEW BEST TIME!' : '40L 完走達成';
+          resTimeNewRecord.className = isNewTimeRecord
+            ? 'text-[9px] font-extrabold text-amber-300'
+            : 'text-[9px] font-extrabold text-emerald-400';
+        } else {
+          resTimeNewRecord.textContent = '料理到着・例外完了';
+          resTimeNewRecord.className = 'text-[9px] font-extrabold text-amber-300';
+        }
+
+        resKpp.textContent = finalKpp.toFixed(2);
+        if (finalKpp <= 2.8) {
+          resKppEval.textContent = 'S級：超先読み脳';
+          resKppEval.className = 'text-[9px] font-extrabold text-cyan-300';
+        } else if (finalKpp <= 3.5) {
+          resKppEval.textContent = 'A級：前頭葉フル稼働';
+          resKppEval.className = 'text-[9px] font-extrabold text-emerald-300';
+        } else {
+          resKppEval.textContent = 'B級：さらにNEXTを意識';
+          resKppEval.className = 'text-[9px] font-bold text-amber-300';
+        }
+
+        resQuad.textContent = `${finalQuadRate}%`;
+        resLinesCleared.textContent = `${linesCleared} Lines / ${piecesPlaced}個`;
+
+        const totalKcal = userStats.totalCompletions * KCAL_PER_ROUTINE;
+        const totalFat = (totalKcal / 7.2).toFixed(1);
+        resCumulativeKcal.textContent = `-${totalKcal.toLocaleString()} kcal`;
+        resCumulativeFat.textContent = `-${totalFat} g`;
+
+        resultModal.classList.remove('hidden');
+      }
+
+      // ==========================================
+      // 13. スマホ用バーチャルパッド＆キーボード入力イベント
+      // ==========================================
+      function setMoveDir(dir) {
+        if (moveDir === dir) return;
+        moveDir = dir;
+        dasTimer = 0;
+        arrTimer = 0;
+        if (dir !== 0) {
+          moveHorizontal(dir, true);
+        }
+      }
+
+      function bindPadButton(btnId, onPress, onRelease) {
+        const el = document.getElementById(btnId);
+        if (!el) return;
+
+        const handleStart = (e) => {
+          e.preventDefault();
+          if (gameState !== 'PLAYING') return;
+          el.classList.add('active-press');
+          onPress();
+        };
+
+        const handleEnd = (e) => {
+          e.preventDefault();
+          el.classList.remove('active-press');
+          if (onRelease) onRelease();
+        };
+
+        el.addEventListener('pointerdown', handleStart, { passive: false });
+        el.addEventListener('pointerup', handleEnd, { passive: false });
+        el.addEventListener('pointercancel', handleEnd, { passive: false });
+        el.addEventListener('pointerleave', handleEnd, { passive: false });
+      }
+
+      // 左移動（長押しDAS/ARR対応）
+      bindPadButton(
+        'padLeft',
+        () => setMoveDir(-1),
+        () => { if (moveDir === -1) setMoveDir(0); }
+      );
+
+      // 右移動（長押しDAS/ARR対応）
+      bindPadButton(
+        'padRight',
+        () => setMoveDir(1),
+        () => { if (moveDir === 1) setMoveDir(0); }
+      );
+
+      // ソフトドロップ（長押し対応）
+      bindPadButton(
+        'padSoftDrop',
+        () => {
+          totalKeyPresses++;
+          currentPieceKeyPresses++;
+          isSoftDropping = true;
+          stepDown();
+          updateMetricsUI();
+        },
+        () => { isSoftDropping = false; }
+      );
+
+      // ハードドロップ（左親指用・右親指用の両方）
+      bindPadButton('padHardDropL', () => hardDrop(true));
+      bindPadButton('padHardDropR', () => hardDrop(true));
+
+      // 左回転・右回転
+      bindPadButton('padRotCCW', () => rotatePiece(-1, true));
+      bindPadButton('padRotCW', () => rotatePiece(1, true));
+
+      // HOLDボタン（下部パッド ＆ 左上HOLDボックス両方）
+      bindPadButton('padHold', () => holdCurrentPiece());
+      document.getElementById('holdBoxBtn').addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        if (gameState === 'PLAYING') holdCurrentPiece();
+      });
+
+      // PCキーボード同時対応
+      const activeKeys = new Set();
+      window.addEventListener('keydown', (e) => {
+        // Spaceや矢印キーでの画面スクロールを防止
+        if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'Space'].includes(e.code)) {
+          e.preventDefault();
+        }
+
+        // モーダル表示中にSpaceまたはEnterで即スタート
+        if (gameState !== 'PLAYING') {
+          if (e.code === 'Space' || e.code === 'Enter') {
+            startSprint();
+          }
+          return;
+        }
+
+        if (e.repeat) return; // OSのキーリピートは無視し、ゲーム内DAS/ARRで均一制御
+        activeKeys.add(e.code);
+
+        switch (e.code) {
+          case 'ArrowLeft':
+            setMoveDir(-1);
+            break;
+          case 'ArrowRight':
+            setMoveDir(1);
+            break;
+          case 'ArrowDown':
+            totalKeyPresses++;
+            currentPieceKeyPresses++;
+            isSoftDropping = true;
+            stepDown();
+            updateMetricsUI();
+            break;
+          case 'Space':
+            hardDrop(true);
+            break;
+          case 'ArrowUp':
+          case 'KeyX':
+            rotatePiece(1, true);
+            break;
+          case 'KeyZ':
+          case 'ControlLeft':
+            rotatePiece(-1, true);
+            break;
+          case 'KeyC':
+          case 'ShiftLeft':
+          case 'ShiftRight':
+            holdCurrentPiece();
+            break;
+          case 'KeyR':
+            startSprint();
+            break;
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        activeKeys.delete(e.code);
+        if (e.code === 'ArrowLeft' && moveDir === -1) {
+          setMoveDir(activeKeys.has('ArrowRight') ? 1 : 0);
+        } else if (e.code === 'ArrowRight' && moveDir === 1) {
+          setMoveDir(activeKeys.has('ArrowLeft') ? -1 : 0);
+        } else if (e.code === 'ArrowDown') {
+          isSoftDropping = false;
+        }
+      });
+
+      // ダブルタップ拡大・ピンチズームの完全防止
+      document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false });
+      document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+
+      // ==========================================
+      // 14. 各種UIボタンイベントのバインド
+      // ==========================================
+      // スタートボタン
+      document.getElementById('btnStartSprint').addEventListener('click', () => {
+        startSprint();
+      });
+
+      // もう1プレイボタン
+      document.getElementById('btnPlayAgain').addEventListener('click', () => {
+        startSprint();
+      });
+
+      // ダッシュボードへ戻るボタン
+      document.getElementById('btnBackToTitle').addEventListener('click', () => {
+        resultModal.classList.add('hidden');
+        updateDashboardUI();
+        startModal.classList.remove('hidden');
+      });
+
+      // クイックリスタートボタン
+      document.getElementById('btnQuickRestart').addEventListener('click', () => {
+        startSprint();
+      });
+
+      // ダッシュボード表示ボタン
+      document.getElementById('btnOpenStats').addEventListener('click', () => {
+        updateDashboardUI();
+        resultModal.classList.add('hidden');
+        startModal.classList.remove('hidden');
+      });
+
+      // 🍜 料理が来た！1手クリア（例外完了）ボタン
+      document.getElementById('btnFoodArrived').addEventListener('click', () => {
+        if (gameState !== 'PLAYING') {
+          // タイトル画面で料理がすぐ来た場合でも、即座に1手配置実績を作って本日の食前ルーティン達成にする
+          startSprint();
+        }
+        completeSprint('FOOD_ARRIVED');
+      });
+
+      // DAS感度切り替えボタン
+      document.querySelectorAll('.das-opt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const preset = btn.getAttribute('data-das');
+          if (DAS_PRESETS[preset]) {
+            userStats.dasPreset = preset;
+            currentDasConfig = DAS_PRESETS[preset];
+            saveStats(userStats);
+            updateDashboardUI();
+          }
+        });
+      });
+
+      // ==========================================
+      // 15. 初期化＆起動
+      // ==========================================
+      window.onload = () => {
+        board = Array.from({ length: TOTAL_ROWS }, () => new Array(COLS).fill(null));
+        refillBag();
+        updateDashboardUI();
+        resizeCanvases();
+        requestAnimationFrame(gameLoop);
+      };
+    })();
+  </script>
+</body>
+</html>
